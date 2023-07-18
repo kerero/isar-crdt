@@ -1,0 +1,15 @@
+# TODO: is that needed?
+targets:
+  $default:
+    builders:
+      isar_crdt|isar_crdt_generator:
+        enabled: true
+
+builders:
+  isar_crdt_generator:
+    import: "package:isar_crdt_generator/isar_crdt_generator.dart"
+    builder_factories: ["generateCrdtCollection"]
+    build_extensions: { ".dart": ["isar_generator.g.part"] }
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]

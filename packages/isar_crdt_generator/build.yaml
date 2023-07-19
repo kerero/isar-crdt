@@ -2,7 +2,16 @@ builders:
   isar_crdt_generator:
     import: "package:isar_crdt_generator/isar_crdt_generator.dart"
     builder_factories: ["generateCrdtCollection"]
-    build_extensions: { ".dart": ["isar_generator.g.part"] }
+    build_extensions: { ".dart": [".crdt.dart"] }
     auto_apply: dependents
-    build_to: cache
-    applies_builders: ["source_gen|combining_builder"]
+    build_to: source
+    runs_before: ["isar_generator|isar_generator"]
+    # applies_builders: ["isar_generator"]
+  # isar_generator:
+  #   import: "package:isar_crdt_generator/isar_crdt_generator.dart"
+  #   builder_factories: ["generateCollection"]
+  #   build_extensions:
+  #     { ".isar_crdt_generator.g.part": [".isar_generator.g.part"] }
+  #   auto_apply: dependents
+  #   build_to: cache
+  #   applies_builders: ["source_gen|combining_builder"]

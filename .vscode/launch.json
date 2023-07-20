@@ -29,7 +29,8 @@
             "program": ".dart_tool\\build\\entrypoint\\build.dart",
             "type": "dart",
             "args": [
-                "build"
+                "build",
+                "-d"
             ]
         }
     ]

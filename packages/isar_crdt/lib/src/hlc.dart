@@ -1,4 +1,7 @@
+import "package:isar/isar.dart";
 import 'dart:math';
+
+part 'hlc.g.dart';
 
 const _shift = 16;
 const _maxCounter = 0xFFFF;
@@ -8,33 +11,40 @@ const _maxDrift = 60000; // 1 minute in ms
 /// This class trades time precision for a guaranteed monotonically increasing
 /// clock in distributed systems.
 /// Inspiration: https://cse.buffalo.edu/tech-reports/2014-04.pdf
-class Hlc<T> implements Comparable<Hlc> {
+
+@embedded
+class Hlc implements Comparable<Hlc> {
   final int milliseconds;
   final int counter;
-  final T nodeId;
+  late final String? nodeId;
 
   int get logicalTime => (milliseconds << _shift) + counter;
 
-  Hlc(int milliseconds, this.counter, this.nodeId)
+  Hlc.fromParameters(int milliseconds, this.counter, {this.nodeId})
       : assert(counter <= _maxCounter),
-        assert(nodeId is Comparable),
-        assert(nodeId != null),
         // Detect microseconds and convert to milliseconds
         milliseconds = milliseconds < 0x0001000000000000
             ? milliseconds
-            : milliseconds ~/ 1000;
+            : milliseconds ~/ 1000 {
+    if (nodeId == null || nodeId?.isEmpty == true) {
+      this.nodeId = ""; // TODO: find a way to get unique node id
+    }
+  }
+  Hlc() : this.zero();
 
-  Hlc.zero(T nodeId) : this(0, 0, nodeId);
+  Hlc.zero() : this.fromParameters(0, 0);
 
-  Hlc.fromDate(DateTime dateTime, T nodeId)
-      : this(dateTime.millisecondsSinceEpoch, 0, nodeId);
+  Hlc.fromDate(
+    DateTime dateTime,
+  ) : this.fromParameters(dateTime.millisecondsSinceEpoch, 0);
 
-  Hlc.now(T nodeId) : this.fromDate(DateTime.now(), nodeId);
+  Hlc.now() : this.fromDate(DateTime.now());
 
-  Hlc.fromLogicalTime(logicalTime, T nodeId)
-      : this(logicalTime >> _shift, logicalTime & _maxCounter, nodeId);
+  Hlc.fromLogicalTime(logicalTime, {String? nodeId})
+      : this.fromParameters(logicalTime >> _shift, logicalTime & _maxCounter,
+            nodeId: nodeId);
 
-  factory Hlc.parse(String timestamp, [T Function(String value)? idDecoder]) {
+  factory Hlc.parse(String timestamp) {
     final counterDash = timestamp.indexOf('-', timestamp.lastIndexOf(':'));
     final nodeIdDash = timestamp.indexOf('-', counterDash + 1);
     final milliseconds = DateTime.parse(timestamp.substring(0, counterDash))
@@ -42,19 +52,18 @@ class Hlc<T> implements Comparable<Hlc> {
     final counter =
         int.parse(timestamp.substring(counterDash + 1, nodeIdDash), radix: 16);
     final nodeId = timestamp.substring(nodeIdDash + 1);
-    return Hlc(milliseconds, counter,
-        idDecoder != null ? idDecoder(nodeId) : nodeId as T);
+    return Hlc.fromParameters(milliseconds, counter, nodeId: nodeId);
   }
 
-  Hlc apply({int? milliseconds, int? counter, T? nodeId}) => Hlc(
-      milliseconds ?? this.milliseconds,
-      counter ?? this.counter,
-      nodeId ?? this.nodeId);
+  Hlc apply({int? milliseconds, int? counter, String? nodeId}) =>
+      Hlc.fromParameters(
+          milliseconds ?? this.milliseconds, counter ?? this.counter,
+          nodeId: nodeId ?? this.nodeId);
 
   /// Generates a unique, monotonic timestamp suitable for transmission to
   /// another system in string format. Local wall time will be used if
   /// [milliseconds] isn't supplied.
-  factory Hlc.send(Hlc<T> canonical, {int? milliseconds}) {
+  factory Hlc.send(Hlc canonical, {int? milliseconds}) {
     // Retrieve the local wall time if milliseconds is null
     milliseconds = milliseconds ?? DateTime.now().millisecondsSinceEpoch;
 
@@ -76,14 +85,15 @@ class Hlc<T> implements Comparable<Hlc> {
       throw OverflowException(counterNew);
     }
 
-    return Hlc(millisecondsNew, counterNew, canonical.nodeId);
+    return Hlc.fromParameters(millisecondsNew, counterNew,
+        nodeId: canonical.nodeId);
   }
 
   /// Compares and validates a timestamp from a remote system with the local
   /// canonical timestamp to preserve monotonicity.
   /// Returns an updated canonical timestamp instance.
   /// Local wall time will be used if [milliseconds] isn't supplied.
-  factory Hlc.recv(Hlc<T> canonical, Hlc<T> remote, {int? milliseconds}) {
+  factory Hlc.recv(Hlc canonical, Hlc remote, {int? milliseconds}) {
     // Retrieve the local wall time if milliseconds is null
     milliseconds = milliseconds ?? DateTime.now().millisecondsSinceEpoch;
 
@@ -99,7 +109,7 @@ class Hlc<T> implements Comparable<Hlc> {
       throw ClockDriftException(remote.milliseconds, milliseconds);
     }
 
-    return Hlc<T>.fromLogicalTime(remote.logicalTime, canonical.nodeId);
+    return Hlc.fromLogicalTime(remote.logicalTime, nodeId: canonical.nodeId);
   }
 
   String toJson() => toString();
@@ -114,13 +124,13 @@ class Hlc<T> implements Comparable<Hlc> {
   int get hashCode => Object.hash(milliseconds, counter, nodeId).hashCode;
 
   @override
-  bool operator ==(other) => other is Hlc<T> && compareTo(other) == 0;
+  bool operator ==(other) => other is Hlc && compareTo(other) == 0;
 
-  bool operator <(other) => other is Hlc<T> && compareTo(other) < 0;
+  bool operator <(other) => other is Hlc && compareTo(other) < 0;
 
   bool operator <=(other) => this < other || this == other;
 
-  bool operator >(other) => other is Hlc<T> && compareTo(other) > 0;
+  bool operator >(other) => other is Hlc && compareTo(other) > 0;
 
   bool operator >=(other) => this > other || this == other;
 

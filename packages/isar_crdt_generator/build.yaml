@@ -2,7 +2,7 @@ builders:
   isar_crdt_generator:
     import: "package:isar_crdt_generator/builder.dart"
     builder_factories: ["generateCrdtCollection"]
-    build_extensions: { ".dart": [".crdt.dart"] }
+    build_extensions: { ".dart": [".isar_crdt.g.dart"] }
     auto_apply: dependents
     build_to: source
     runs_before: ["isar_generator|isar_generator"]

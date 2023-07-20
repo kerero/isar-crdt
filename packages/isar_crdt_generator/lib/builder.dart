@@ -7,5 +7,5 @@ Builder generateCrdtCollection(BuilderOptions options) => PartBuilder(
       [
         CrdtCollectionGenerator(),
       ],
-      '.crdt.dart',
+      '.isar_crdt.g.dart',
     );

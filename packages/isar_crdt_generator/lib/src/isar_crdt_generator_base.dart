@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
-import 'package:isar_generator/src/collection_generator.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:isar_crdt/isar_crdt.dart';
 import 'model_visitor.dart';

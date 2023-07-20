@@ -31,8 +31,8 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
 
   String generateHlcFields(ClassElement element) {
     final s = StringBuffer();
-    // TODO: required id field to be named id
-    for (final f in element.fields.where((f) => f.displayName != "id")) {
+    for (final f
+        in element.fields.where((f) => f.type.alias?.element.name != "Id")) {
       s.writeln("Hlc ${f.displayName}Hlc = Hlc.zero();");
     }
 

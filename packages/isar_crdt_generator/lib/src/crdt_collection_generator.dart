@@ -12,6 +12,7 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     classCode = classCode.substring(0, classCode.length - 1);
     final code = '''
       $classCode
+      ${generateHlcFields(element)}
       }
 ''';
 
@@ -28,11 +29,11 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     return code;
   }
 
-  String generateFields(ClassElement element) {
+  String generateHlcFields(ClassElement element) {
     final s = StringBuffer();
     // TODO: required id field to be named id
     for (final f in element.fields.where((f) => f.displayName != "id")) {
-      s.writeln("");
+      s.writeln("Hlc ${f.displayName}Hlc = Hlc.zero();");
     }
 
     return s.toString();

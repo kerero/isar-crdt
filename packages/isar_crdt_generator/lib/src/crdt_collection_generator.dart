@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:isar_crdt/isar_crdt.dart';
@@ -8,15 +9,25 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
   Future<String> generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) async {
     element as ClassElement;
+
     var classCode = await generateClass(element, buildStep);
+    // Remove the closing curly bracket from the class
     classCode = classCode.substring(0, classCode.length - 1);
-    final code = '''
+
+    final className = "${element.displayName}Crdt";
+
+    return '''
       $classCode
       ${generateHlcFields(element)}
       }
-''';
 
-    return code;
+      extension ${className}Hlc on IsarCollection<$className> {
+          void updateHLCs(Id id, $className newObj) async {
+          final oldObj = await get(id);
+
+          ${generateHlcUpdates(element)}
+        }
+      }''';
   }
 
   Future<String> generateClass(
@@ -31,11 +42,38 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
 
   String generateHlcFields(ClassElement element) {
     final s = StringBuffer();
-    for (final f
-        in element.fields.where((f) => f.type.alias?.element.name != "Id")) {
-      s.writeln("Hlc ${f.displayName}Hlc = Hlc.zero();");
+    for (final f in element.fields.where((f) => !isIsarId(f))) {
+      s.writeln("Hlc ${hlcFieldName(f.displayName)} = Hlc.zero();");
     }
 
     return s.toString();
   }
+
+  String generateHlcUpdates(ClassElement element) {
+    final s = StringBuffer();
+    final fields = element.fields.where((f) => !isIsarId(f));
+
+    // generate primitives
+    for (final f in fields.where((f) => isPrimitive(f.type))) {
+      final fieldName = f.displayName;
+      s.writeln(
+          "newObj.${hlcFieldName(fieldName)} = updateHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${hlcFieldName(fieldName)});");
+    }
+
+    // TODO: generate for embedded
+
+    return s.toString();
+  }
+
+  String hlcFieldName(String varName) => "${varName}Hlc";
+
+  bool isIsarId(FieldElement f) => f.type.alias?.element.name == "Id";
+
+  bool isPrimitive(DartType t) =>
+      t.isDartCoreInt ||
+      t.isDartCoreDouble ||
+      t.isDartCoreString ||
+      t.isDartCoreEnum ||
+      t.isDartCoreBool ||
+      t.isDartCoreNum;
 }

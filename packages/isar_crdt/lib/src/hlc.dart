@@ -17,6 +17,7 @@ class Hlc implements Comparable<Hlc> {
   final int milliseconds;
   final int counter;
   late final String? nodeId;
+  static late final Hlc? _current;
 
   int get logicalTime => (milliseconds << _shift) + counter;
 
@@ -31,6 +32,9 @@ class Hlc implements Comparable<Hlc> {
     }
   }
   Hlc() : this.zero();
+
+  // TODO: define acceptable API and implement get next clock tick
+  Hlc increaseClock() => this;
 
   Hlc.zero() : this.fromParameters(0, 0);
 

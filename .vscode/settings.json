@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
         "crdt"
-    ]
+    ],
+    "dart.debugExternalPackageLibraries": true,
+    "dart.debugSdkLibraries": true,
 }

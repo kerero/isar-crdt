@@ -16,7 +16,7 @@ const _maxDrift = 60000; // 1 minute in ms
 class Hlc implements Comparable<Hlc> {
   final int milliseconds;
   final int counter;
-  late final String? nodeId;
+  late String? nodeId;
   static late final Hlc? _current;
 
   int get logicalTime => (milliseconds << _shift) + counter;

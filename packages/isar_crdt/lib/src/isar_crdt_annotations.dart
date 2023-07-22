@@ -1,5 +1,3 @@
-
-
 class CrdtCollection {
   const CrdtCollection();
 }

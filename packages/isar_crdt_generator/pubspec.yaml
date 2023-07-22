@@ -6,11 +6,10 @@ version: 0.1.0
 environment:
   sdk: ^3.0.6
 
-# Add regular dependencies here.
 dependencies:
   build: ^2.4.1
   source_gen: ^1.4.0
-  isar_crdt: 
+  isar_crdt:
   analyzer:
   isar_generator: ^3.1.0+1
 

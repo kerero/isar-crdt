@@ -14,11 +14,11 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     // Remove the closing curly bracket from the class
     classCode = classCode.substring(0, classCode.length - 1);
 
-    final className = "${element.displayName}Crdt";
+    final className = element.displayName;
 
     return '''
-      $classCode
-      ${generateHlcFields(element)}
+      class ${getGeneratedClassName(element.displayName)} {
+        ${generateHlcFields(element)}
       }
 
       extension ${className}Hlc on IsarCollection<$className> {
@@ -34,8 +34,9 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
       ClassElement element, BuildStep buildStep) async {
     final astNode = await buildStep.resolver.astNodeFor(element);
     var code = astNode!.toSource();
-    code = code.replaceFirst("crdtCollection", "collection");
-    code = code.replaceAll(element.displayName, "${element.displayName}Crdt");
+    code = code.replaceFirst("@crdtCollection", "");
+    code = code.replaceAll(
+        element.displayName, getGeneratedClassName(element.displayName));
 
     return code;
   }
@@ -43,7 +44,8 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
   String generateHlcFields(ClassElement element) {
     final s = StringBuffer();
     for (final f in element.fields.where((f) => !isIsarId(f))) {
-      s.writeln("Hlc ${hlcFieldName(f.displayName)} = Hlc.zero();");
+      s.writeln("@protected");
+      s.writeln("Hlc ${getHlcFieldName(f.displayName)} = Hlc.zero();");
     }
 
     return s.toString();
@@ -57,7 +59,7 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     for (final f in fields.where((f) => isPrimitive(f.type))) {
       final fieldName = f.displayName;
       s.writeln(
-          "newObj.${hlcFieldName(fieldName)} = updateHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${hlcFieldName(fieldName)});");
+          "newObj.${getHlcFieldName(fieldName)} = updateHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)});");
     }
 
     // TODO: generate for embedded
@@ -65,7 +67,9 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     return s.toString();
   }
 
-  String hlcFieldName(String varName) => "${varName}Hlc";
+  String getHlcFieldName(String varName) => "${varName}Hlc";
+
+  String getGeneratedClassName(String name) => "_${name}Crdt";
 
   bool isIsarId(FieldElement f) => f.type.alias?.element.name == "Id";
 

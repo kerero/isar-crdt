@@ -20,7 +20,8 @@
             "name": "isar_crdt_test",
             "cwd": "packages\\isar_crdt_test",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "program": "bin/isar_crdt_test.dart",
         },
         {
             "name": "Debug Generator",

@@ -26,3 +26,4 @@ Hlc updateHlc<T extends Comparable>(T? oldVal, T newVal, Hlc? oldHlc) {
       ? Hlc.now().increaseClock()
       : oldHlc;
 }
+

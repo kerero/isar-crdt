@@ -9,3 +9,4 @@ export "src/hlc.dart";
 export "src/isar_extensions.dart";
 export 'src/isar_collection_shell.dart';
 export 'src/isar_crdt_collection.dart';
+export 'src/isar_crdt_base_class.dart';

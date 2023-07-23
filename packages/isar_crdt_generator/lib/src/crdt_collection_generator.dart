@@ -17,7 +17,7 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     final className = element.displayName;
 
     return '''
-      class ${getGeneratedClassName(element.displayName)} {
+      class ${getGeneratedClassName(element.displayName)} extends IsarCrdtBase {
         ${generateHlcFields(element)}
       }
 

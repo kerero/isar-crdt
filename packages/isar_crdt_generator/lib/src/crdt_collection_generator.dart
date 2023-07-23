@@ -46,6 +46,10 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     for (final f in element.fields.where((f) => !isIsarId(f))) {
       s.writeln("@protected");
       s.writeln("Hlc ${getHlcFieldName(f.displayName)} = Hlc.zero();");
+      if (f.type.isDartCoreList) {
+        s.writeln("@protected");
+        s.writeln("List<Hlc> ${getListHlcFieldName(f.displayName)} = [];");
+      }
     }
 
     return s.toString();
@@ -59,15 +63,22 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     for (final f in fields.where((f) => isPrimitive(f.type))) {
       final fieldName = f.displayName;
       s.writeln(
-          "newObj.${getHlcFieldName(fieldName)} = updateHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)});");
+          "newObj.${getHlcFieldName(fieldName)} = updateHlcPrimitives(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)});");
     }
 
+    // generate for primitive lists
+    for (final f in fields.where((f) => f.type.isDartCoreList)) {
+      final fieldName = f.displayName;
+      s.writeln(
+          "newObj.${getHlcFieldName(fieldName)} = updatePrimitiveListHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)}, oldObj?.${getListHlcFieldName(fieldName)});");
+    }
     // TODO: generate for embedded
 
     return s.toString();
   }
 
-  String getHlcFieldName(String varName) => "${varName}Hlc";
+  String getHlcFieldName(String varName) => "${varName}_fieldHlc";
+  String getListHlcFieldName(String varName) => "${varName}_listHlc";
 
   String getGeneratedClassName(String name) => "_${name}Crdt";
 

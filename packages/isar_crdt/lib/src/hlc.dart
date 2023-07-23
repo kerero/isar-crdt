@@ -12,6 +12,7 @@ const _maxDrift = 60000; // 1 minute in ms
 /// clock in distributed systems.
 /// Inspiration: https://cse.buffalo.edu/tech-reports/2014-04.pdf
 
+// TODO: maybe it will be more wise to save only a int64 into isar.
 @embedded
 class Hlc implements Comparable<Hlc> {
   final int milliseconds;

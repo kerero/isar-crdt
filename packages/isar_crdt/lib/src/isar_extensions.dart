@@ -1,36 +1,14 @@
-// import 'package:isar/isar.dart';
-
-// extension ISarCollectionCrdtSupport<String> on IsarCollection<String> {
-//   void updateHLCs(Id id, ) async {
-//     final oldObj = await get(id);
-//   }
-//   // void get(int id){
-
-//   // }
-// }
-
-//   typedef UpdateHLCs<T> = void Function(
-//   T object,
-//   IsarWriter writer,
-//   List<int> offsets,
-//   Map<Type, List<int>> allOffsets,
-// );
-// extension ISarSchemaCrdtSupport<T> on CollectionSchema{
-//   UpdateHLCs<T>? updateHLCs;
-// }
-
 import 'dart:math';
+import 'package:isar_crdt/isar_crdt.dart';
 
-import 'hlc.dart';
-
-Hlc updateHlcPrimitives<T>(T? oldVal, T newVal, Hlc? oldHlc) {
+Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
   return oldHlc == null || oldVal != newVal
       ? Hlc.now().increaseClock()
       : oldHlc;
 }
 
 // TODO: write tests for this
-Hlc updatePrimitiveListHlc<T>(
+Hlc updateListHlc<T>(
     List<T>? oldList, List<T> newList, Hlc? oldHlc, List<Hlc>? oldListHlc) {
   var updated = false;
   oldHlc ??= Hlc.now();
@@ -44,10 +22,22 @@ Hlc updatePrimitiveListHlc<T>(
         .addAll(List<Hlc>.filled(newList.length - oldList.length, Hlc.now()));
   }
 
-  for (int i = 0; i < min(oldList.length, newList.length); i++) {
-    if (oldList[i] != newList[i]) {
-      updated = true;
-      oldListHlc[i] = Hlc.now();
+  // For embedded lists
+  if (T is IsarCrdtBase) {
+    for (int i = 0; i < min(oldList.length, newList.length); i++) {
+      Hlc objectHlc = (newList[i] as dynamic).updateHLCs(oldList[i]);
+      if (objectHlc > oldListHlc[i]) {
+        updated = true;
+        oldListHlc[i] = Hlc.now();
+      }
+    }
+  } else {
+    // for primitive lists
+    for (int i = 0; i < min(oldList.length, newList.length); i++) {
+      if (oldList[i] != newList[i]) {
+        updated = true;
+        oldListHlc[i] = Hlc.now();
+      }
     }
   }
 

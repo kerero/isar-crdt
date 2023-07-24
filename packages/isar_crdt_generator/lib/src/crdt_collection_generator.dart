@@ -21,13 +21,22 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
         ${generateHlcFields(element)}
       }
 
-      extension ${className}Hlc on IsarCollection<$className> {
-          void updateHLCs(Id id, $className newObj) async {
-          final oldObj = await get(id);
-
+      extension ${className}Hlc on $className {
+        @protected
+        Hlc updateHLCs($className? oldObj) {
           ${generateHlcUpdates(element)}
         }
-      }''';
+      }
+
+      extension ${className}CollectionHlc on IsarCollection<$className> {
+          void updateCollectionItemHLCs(Id id, $className newObj) async {
+            final oldObj = await get(id);
+            newObj.updateHLCs(oldObj);
+          }
+      }
+      
+
+      ''';
   }
 
   Future<String> generateClass(
@@ -43,46 +52,72 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
 
   String generateHlcFields(ClassElement element) {
     final s = StringBuffer();
-    for (final f in element.fields.where((f) => !isIsarId(f))) {
+    final hlcFields = [];
+
+    s.writeln("@protected");
+    s.writeln("Hlc ${getClassHlcName(element.displayName)} = Hlc.zero();");
+
+    for (final f in element.fields.where((f) => !isIsarId(f.type))) {
       s.writeln("@protected");
       s.writeln("Hlc ${getHlcFieldName(f.displayName)} = Hlc.zero();");
+      hlcFields.add(getHlcFieldName(f.displayName));
       if (f.type.isDartCoreList) {
         s.writeln("@protected");
         s.writeln("List<Hlc> ${getListHlcFieldName(f.displayName)} = [];");
       }
     }
 
+    s.writeln('''
+      @protected
+      Hlc getLatestHlc() {
+        return [${hlcFields.join(",")}].reduce((a, b) => a > b ? a :b);
+      }
+    ''');
+
     return s.toString();
   }
 
   String generateHlcUpdates(ClassElement element) {
     final s = StringBuffer();
-    final fields = element.fields.where((f) => !isIsarId(f));
+    final fields = element.fields.where((f) => !isIsarId(f.type));
 
     // generate primitives
     for (final f in fields.where((f) => isPrimitive(f.type))) {
       final fieldName = f.displayName;
       s.writeln(
-          "newObj.${getHlcFieldName(fieldName)} = updateHlcPrimitives(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)});");
+          "${getHlcFieldName(fieldName)} = updatePrimitivesHlc(oldObj?.$fieldName, $fieldName, oldObj?.${getHlcFieldName(fieldName)});");
     }
 
-    // generate for primitive lists
+    // generate for lists
     for (final f in fields.where((f) => f.type.isDartCoreList)) {
       final fieldName = f.displayName;
       s.writeln(
-          "newObj.${getHlcFieldName(fieldName)} = updatePrimitiveListHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)}, oldObj?.${getListHlcFieldName(fieldName)});");
+          "${getHlcFieldName(fieldName)} = getLatestHlc(oldObj?.$fieldName, $fieldName, oldObj?.${getHlcFieldName(fieldName)}, oldObj?.${getListHlcFieldName(fieldName)});");
     }
-    // TODO: generate for embedded
+    // generate for embedded
+    for (final f in fields
+        .where((f) => _embeddedChecker.hasAnnotationOf(f.type.element!))) {
+      final fieldName = f.displayName;
+      s.writeln(
+          "${getHlcFieldName(fieldName)} = $fieldName.updateHLCs(oldObj?.$fieldName);");
+    }
+
+    // Update class Hlc
+    s.writeln("${getClassHlcName(element.displayName)} = getLatestHlc();");
+    s.writeln("return ${getClassHlcName(element.displayName)};");
 
     return s.toString();
   }
 
   String getHlcFieldName(String varName) => "${varName}_fieldHlc";
+  String getClassHlcName(String name) => "${name}_classHlc";
   String getListHlcFieldName(String varName) => "${varName}_listHlc";
 
   String getGeneratedClassName(String name) => "_${name}Crdt";
+  static const TypeChecker _embeddedChecker =
+      TypeChecker.fromRuntime(CrdtEmbedded);
 
-  bool isIsarId(FieldElement f) => f.type.alias?.element.name == "Id";
+  bool isIsarId(DartType t) => t.alias?.element.name == "Id";
 
   bool isPrimitive(DartType t) =>
       t.isDartCoreInt ||

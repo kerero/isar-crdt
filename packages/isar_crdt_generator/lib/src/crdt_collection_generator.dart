@@ -92,7 +92,7 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     for (final f in fields.where((f) => f.type.isDartCoreList)) {
       final fieldName = f.displayName;
       s.writeln(
-          "${getHlcFieldName(fieldName)} = getLatestHlc(oldObj?.$fieldName, $fieldName, oldObj?.${getHlcFieldName(fieldName)}, oldObj?.${getListHlcFieldName(fieldName)});");
+          "${getHlcFieldName(fieldName)} = updateListHlc(oldObj?.$fieldName, $fieldName, oldObj?.${getHlcFieldName(fieldName)}, oldObj?.${getListHlcFieldName(fieldName)});");
     }
     // generate for embedded
     for (final f in fields

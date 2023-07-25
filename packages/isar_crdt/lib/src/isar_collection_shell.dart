@@ -98,9 +98,7 @@ class IsarCollectionShell<OBJ> extends IsarCollection<OBJ> {
   Isar get isar => originalCollection.isar;
 
   @override
-  Future<Id> put(OBJ object) {
-    return putAll([object]).then((List<Id> ids) => ids[0]);
-  }
+  Future<Id> put(OBJ object) => putAll([object]).then((List<Id> ids) => ids[0]);
 
   @override
   Future<List<Id>> putAll(List<OBJ> objects) =>

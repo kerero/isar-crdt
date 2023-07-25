@@ -17,25 +17,23 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     final className = element.displayName;
 
     return '''
-      class ${getGeneratedClassName(element.displayName)} extends IsarCrdtBase {
+      // ignore_for_file: non_constant_identifier_names, invalid_use_of_protected_member, , duplicate_ignore
+      class ${getGeneratedClassName(element.displayName)} extends IsarCrdtBase<$className> {
         ${generateHlcFields(element)}
-      }
 
-      extension ${className}Hlc on $className {
         @protected
-        Hlc updateHLCs($className? oldObj) {
+        @override
+        Hlc updateHLCs($className? oldObj, $className newObj) {
           ${generateHlcUpdates(element)}
         }
       }
 
-      extension ${className}CollectionHlc on IsarCollection<$className> {
-          void updateCollectionItemHLCs(Id id, $className newObj) async {
-            final oldObj = await get(id);
-            newObj.updateHLCs(oldObj);
-          }
-      }
-      
-
+      // extension ${className}CollectionHlc on IsarCollection<$className> {
+      //     void updateCollectionItemHLCs(Id id, $className newObj) async {
+      //       final oldObj = await get(id);
+      //       newObj.updateHLCs(oldObj);
+      //     }
+      // }
       ''';
   }
 
@@ -55,15 +53,18 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     final hlcFields = [];
 
     s.writeln("@protected");
-    s.writeln("Hlc ${getClassHlcName(element.displayName)} = Hlc.zero();");
+    s.writeln(
+        "Hlc ${getClassHlcName(element.displayName)} = HybridLogicalClock.zero();");
 
     for (final f in element.fields.where((f) => !isIsarId(f.type))) {
       s.writeln("@protected");
-      s.writeln("Hlc ${getHlcFieldName(f.displayName)} = Hlc.zero();");
+      s.writeln(
+          "Hlc ${getHlcFieldName(f.displayName)} = HybridLogicalClock.zero();");
       hlcFields.add(getHlcFieldName(f.displayName));
       if (f.type.isDartCoreList) {
         s.writeln("@protected");
-        s.writeln("List<Hlc> ${getListHlcFieldName(f.displayName)} = [];");
+        s.writeln(
+            "List<Hlc> ${getListHlcFieldName(f.displayName)} = List.empty(growable: true);");
       }
     }
 
@@ -85,21 +86,25 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     for (final f in fields.where((f) => isPrimitive(f.type))) {
       final fieldName = f.displayName;
       s.writeln(
-          "${getHlcFieldName(fieldName)} = updatePrimitivesHlc(oldObj?.$fieldName, $fieldName, oldObj?.${getHlcFieldName(fieldName)});");
+          "newObj.${getHlcFieldName(fieldName)} = updatePrimitivesHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)});");
     }
 
     // generate for lists
     for (final f in fields.where((f) => f.type.isDartCoreList)) {
       final fieldName = f.displayName;
       s.writeln(
-          "${getHlcFieldName(fieldName)} = updateListHlc(oldObj?.$fieldName, $fieldName, oldObj?.${getHlcFieldName(fieldName)}, oldObj?.${getListHlcFieldName(fieldName)});");
+          "final ${fieldName}HlcRecord = updateListHlc(oldObj?.$fieldName, newObj.$fieldName, oldObj?.${getHlcFieldName(fieldName)}, oldObj?.${getListHlcFieldName(fieldName)});");
+      s.writeln(
+          "newObj.${getHlcFieldName(fieldName)} = ${fieldName}HlcRecord.\$1;");
+      s.writeln(
+          "newObj.${getListHlcFieldName(fieldName)} =  ${fieldName}HlcRecord.\$2;");
     }
     // generate for embedded
     for (final f in fields
         .where((f) => _embeddedChecker.hasAnnotationOf(f.type.element!))) {
       final fieldName = f.displayName;
       s.writeln(
-          "${getHlcFieldName(fieldName)} = $fieldName.updateHLCs(oldObj?.$fieldName);");
+          "newObj.${getHlcFieldName(fieldName)} = newObj.$fieldName.updateHLCs(oldObj?.$fieldName, newObj.$fieldName);");
     }
 
     // Update class Hlc

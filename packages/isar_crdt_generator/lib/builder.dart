@@ -11,15 +11,15 @@ Builder generateIsarCrdt(BuilderOptions options) => PartBuilder(
       [
         CrdtCollectionGenerator(),
         CrdtEmbeddedGenerator(),
-        ModifiedIsarCollectionGenerator(),
-        IsarEmbeddedGenerator(),
+        // ModifiedIsarCollectionGenerator(),
+        // IsarEmbeddedGenerator(),
       ],
       '.isar_crdt.g.dart',
     );
 
 Builder generateIsar(BuilderOptions options) => PartBuilder(
       [
-        IsarCollectionGenerator(),
+        ModifiedIsarCollectionGenerator(),
         IsarEmbeddedGenerator(),
       ],
       '.isar.g.dart',

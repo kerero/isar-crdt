@@ -58,7 +58,7 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
       if (f.type.isDartCoreList) {
         s.writeln("@protected");
         s.writeln(
-            "List<Hlc> ${getListHlcFieldName(f.displayName)} = List.empty(growable: true);");
+            "List<Hlc> ${getListHlcFieldName(f.displayName)} = [];");
       }
     }
 

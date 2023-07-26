@@ -9,7 +9,7 @@ Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
     List<T>? oldList, List<T> newList, Hlc? oldHlc, List<Hlc>? oldListHlc) {
   var updated = false;
   oldHlc ??= HybridLogicalClock.now();
-  oldList ??= List.empty(growable: true);
+  oldList ??= [];
   oldListHlc ??= [];
 
   if (oldList.length > newList.length) {

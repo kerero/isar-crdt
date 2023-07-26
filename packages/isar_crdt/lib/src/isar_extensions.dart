@@ -16,26 +16,28 @@ Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
   if (oldList.length > newList.length) {
     oldListHlc = oldListHlc.toList(); // Isar deserialize fixed size lists
     oldListHlc.removeRange(newList.length, oldList.length);
+    updated = true;
   } else if (oldList.length < newList.length) {
     oldListHlc = oldListHlc.toList(); // Isar deserialize fixed size lists
     oldListHlc.addAll(List<Hlc>.filled(
         newList.length - oldList.length, HybridLogicalClock.now()));
+    updated = true;
   }
 
   // For embedded lists
-  if (T is IsarCrdtBase) {
-    for (int i = 0; i < min(oldList.length, newList.length); i++) {
-      Hlc objectHlc =
-          (newList[i] as IsarCrdtBase<T>).updateHLCs(oldList[i], newList[i]);
+  if (newList.firstOrNull is IsarCrdtBase) {
+    for (int i = 0; i < oldListHlc.length; i++) {
+      Hlc objectHlc = (newList[i] as IsarCrdtBase<T>)
+          .updateHLCs(oldList.elementAtOrNull(i), newList[i]);
       if (objectHlc > oldListHlc[i]) {
         updated = true;
-        oldListHlc[i] = HybridLogicalClock.now();
+        oldListHlc[i] = objectHlc;
       }
     }
   } else {
     // for primitive lists
-    for (int i = 0; i < min(oldList.length, newList.length); i++) {
-      if (oldList[i] != newList[i]) {
+    for (int i = 0; i < oldListHlc.length; i++) {
+      if (oldList.elementAtOrNull(i) != newList[i]) {
         updated = true;
         oldListHlc[i] = HybridLogicalClock.now();
       }

@@ -14,11 +14,13 @@ Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
   oldListHlc ??= [];
 
   if (oldList.length > newList.length) {
-    oldListHlc = oldListHlc.toList(); // Isar deserialize fixed size lists
+    // Make list growable (https://github.com/isar/isar/issues/703)
+    oldListHlc = oldListHlc.toList();
     oldListHlc.removeRange(newList.length, oldList.length);
     updated = true;
   } else if (oldList.length < newList.length) {
-    oldListHlc = oldListHlc.toList(); // Isar deserialize fixed size lists
+    // Make list growable (https://github.com/isar/isar/issues/703)
+    oldListHlc = oldListHlc.toList();
     oldListHlc.addAll(List<Hlc>.filled(
         newList.length - oldList.length, HybridLogicalClock.now()));
     updated = true;

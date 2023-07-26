@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:isar_crdt/isar_crdt.dart';
 
 Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {

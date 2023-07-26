@@ -18,22 +18,16 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
 
     return '''
       // ignore_for_file: non_constant_identifier_names, invalid_use_of_protected_member, , duplicate_ignore
-      class ${getGeneratedClassName(element.displayName)} extends IsarCrdtBase<$className> {
+      abstract class ${getGeneratedClassName(element.displayName)} extends IsarCrdtBase<$className> {
         ${generateHlcFields(element)}
 
         @protected
         @override
-        Hlc updateHLCs($className? oldObj, $className newObj) {
+        Hlc updateHLCs($className? oldObj) {
+          final newObj = this as $className;
           ${generateHlcUpdates(element)}
         }
       }
-
-      // extension ${className}CollectionHlc on IsarCollection<$className> {
-      //     void updateCollectionItemHLCs(Id id, $className newObj) async {
-      //       final oldObj = await get(id);
-      //       newObj.updateHLCs(oldObj);
-      //     }
-      // }
       ''';
   }
 
@@ -104,7 +98,7 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
         .where((f) => _embeddedChecker.hasAnnotationOf(f.type.element!))) {
       final fieldName = f.displayName;
       s.writeln(
-          "newObj.${getHlcFieldName(fieldName)} = newObj.$fieldName.updateHLCs(oldObj?.$fieldName, newObj.$fieldName);");
+          "newObj.${getHlcFieldName(fieldName)} = newObj.$fieldName.updateHLCs(oldObj?.$fieldName);");
     }
 
     // Update class Hlc

@@ -30,7 +30,7 @@ Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
   if (newList.firstOrNull is IsarCrdtBase) {
     for (int i = 0; i < oldListHlc.length; i++) {
       Hlc objectHlc = (newList[i] as IsarCrdtBase<T>)
-          .updateHLCs(oldList.elementAtOrNull(i), newList[i]);
+          .updateHLCs(oldList.elementAtOrNull(i));
       if (objectHlc > oldListHlc[i]) {
         updated = true;
         oldListHlc[i] = objectHlc;

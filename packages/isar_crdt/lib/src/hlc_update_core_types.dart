@@ -1,14 +1,14 @@
 import 'package:isar_crdt/isar_crdt.dart';
 
 Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
-  return oldHlc == null || oldVal != newVal ? HybridLogicalClock.now() : oldHlc;
+  return oldHlc == null || oldVal != newVal ? Hlc.now() : oldHlc;
 }
 
 // TODO: write tests for this
 (Hlc, List<Hlc>) updateListHlc<T>(
     List<T>? oldList, List<T> newList, Hlc? oldHlc, List<Hlc>? oldListHlc) {
   var updated = false;
-  oldHlc ??= HybridLogicalClock.now();
+  oldHlc ??= Hlc.now();
   oldList ??= [];
   oldListHlc ??= [];
 
@@ -20,8 +20,8 @@ Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
   } else if (oldList.length < newList.length) {
     // Make list growable (https://github.com/isar/isar/issues/703)
     oldListHlc = oldListHlc.toList();
-    oldListHlc.addAll(List<Hlc>.filled(
-        newList.length - oldList.length, HybridLogicalClock.now()));
+    oldListHlc
+        .addAll(List<Hlc>.filled(newList.length - oldList.length, Hlc.now()));
     updated = true;
   }
 
@@ -40,15 +40,13 @@ Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
     for (int i = 0; i < oldListHlc.length; i++) {
       if (oldList.elementAtOrNull(i) != newList[i]) {
         updated = true;
-        oldListHlc[i] = HybridLogicalClock.now();
+        oldListHlc[i] = Hlc.now();
       }
     }
   }
 
   return (
-    updated || newList.length != oldList.length
-        ? HybridLogicalClock.now()
-        : oldHlc,
+    updated || newList.length != oldList.length ? Hlc.now() : oldHlc,
     oldListHlc
   );
 }

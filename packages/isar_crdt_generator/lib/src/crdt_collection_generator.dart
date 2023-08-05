@@ -25,7 +25,13 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
         @override
         Hlc updateHLCs($className? oldObj) {
           final newObj = this as $className;
-          ${generateHlcUpdates(element)}
+          ${generateHlcUpdateMethod(element)}
+        }
+
+        @protected
+        @override
+        void merge($className other) {
+          ${generateMergeMethod(element)}
         }
       }
       ''';
@@ -47,18 +53,15 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     final hlcFields = [];
 
     s.writeln("@protected");
-    s.writeln(
-        "Hlc ${getClassHlcName(element.displayName)} = HybridLogicalClock.zero();");
+    s.writeln("Hlc ${getClassHlcName(element.displayName)} = Hlc.zero();");
 
     for (final f in element.fields.where((f) => !isIsarId(f.type))) {
       s.writeln("@protected");
-      s.writeln(
-          "Hlc ${getHlcFieldName(f.displayName)} = HybridLogicalClock.zero();");
+      s.writeln("Hlc ${getHlcFieldName(f.displayName)} = Hlc.zero();");
       hlcFields.add(getHlcFieldName(f.displayName));
       if (f.type.isDartCoreList) {
         s.writeln("@protected");
-        s.writeln(
-            "List<Hlc> ${getListHlcFieldName(f.displayName)} = [];");
+        s.writeln("List<Hlc> ${getListHlcFieldName(f.displayName)} = [];");
       }
     }
 
@@ -72,11 +75,11 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     return s.toString();
   }
 
-  String generateHlcUpdates(ClassElement element) {
+  String generateHlcUpdateMethod(ClassElement element) {
     final s = StringBuffer();
     final fields = element.fields.where((f) => !isIsarId(f.type));
 
-    // generate primitives
+    // generate for primitives
     for (final f in fields.where((f) => isPrimitive(f.type))) {
       final fieldName = f.displayName;
       s.writeln(
@@ -106,6 +109,10 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     s.writeln("return ${getClassHlcName(element.displayName)};");
 
     return s.toString();
+  }
+
+  String generateMergeMethod(ClassElement element) {
+    return ''; // TODO:
   }
 
   String getHlcFieldName(String varName) => "${varName}_fieldHlc";

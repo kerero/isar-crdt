@@ -9,6 +9,7 @@ class IsarCrdtCollection<OBJ extends IsarCrdtBase>
   Future<Id> put(OBJ object) async {
     final id = schema.getId(object);
     final oldObj = await get(id);
+    LocalSystemHlc.incrementLocalTime();
     object.updateHLCs(oldObj);
     return super.put(object);
   }

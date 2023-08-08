@@ -15,7 +15,7 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     classCode = classCode.substring(0, classCode.length - 1);
 
     final className = element.displayName;
-
+    // TODO: think about removing class and embedded Hlcs since they seem redundant
     return '''
       // ignore_for_file: non_constant_identifier_names, invalid_use_of_protected_member, , duplicate_ignore
       abstract class ${getGeneratedClassName(element.displayName)} extends IsarCrdtBase<$className> {
@@ -112,7 +112,40 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
   }
 
   String generateMergeMethod(ClassElement element) {
-    return ''; // TODO:
+    final s = StringBuffer();
+    final fields = element.fields.where((f) => !isIsarId(f.type));
+    // final isarIdField = element.fields.firstWhere((f) => isIsarId(f.type));
+
+    s.writeln('final self = this as ${element.displayName};');
+
+    final classHlcFieldName = getClassHlcName(element.displayName);
+    s.writeln(
+        'self.$classHlcFieldName = other.$classHlcFieldName > self.$classHlcFieldName ? other.$classHlcFieldName : self.$classHlcFieldName;');
+
+    // generate for primitives
+    for (final f in fields.where((f) => f.type.isDartCoreList)) {
+      final fieldName = f.displayName;
+      final hlcFieldName = getHlcFieldName(fieldName);
+      s.writeln('''
+                self.$fieldName = other.$hlcFieldName > self.$hlcFieldName ? other.$fieldName : self.$fieldName;
+                self.$hlcFieldName = other.$hlcFieldName > self.$hlcFieldName ? other.$hlcFieldName : self.$hlcFieldName;
+                ''');
+    }
+
+    // generate for embedded
+    for (final f in fields
+        .where((f) => _embeddedChecker.hasAnnotationOf(f.type.element!))) {
+      final fieldName = f.displayName;
+      final hlcFieldName = getHlcFieldName(fieldName);
+      s.writeln('self.$fieldName.merge(other.$fieldName);');
+      s.writeln(
+          'self.$hlcFieldName = other.$hlcFieldName > self.$hlcFieldName ? other.$hlcFieldName : self.$hlcFieldName;');
+    }
+
+    //TODO: generate for lists
+    
+
+    return s.toString(); // TODO:
   }
 
   String getHlcFieldName(String varName) => "${varName}_fieldHlc";

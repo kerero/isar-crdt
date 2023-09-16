@@ -6,9 +6,9 @@
 </p>
 
 # ⚠️ WIP ⚠️
-This projects aims to extend the functionality of the [Isar database](https://isar.dev/) to allow remote synchronization (isar/isar#2).
+This project aims to extend the functionality of the [Isar database](https://isar.dev/) to allow remote synchronization (isar/isar#2).
 
-The remote synchronization is achieved by generating HLC ([Hybrid Logical Clock](https://martinfowler.com/articles/patterns-of-distributed-systems/hybrid-clock.html)) per field that act as a version number for the current value. This allows two versions of an object to be merged in a consistent way while also retaining the newer version of each field.
+The remote synchronization is achieved by generating HLC ([Hybrid Logical Clock](https://martinfowler.com/articles/patterns-of-distributed-systems/hybrid-clock.html)) per field that act as a version number for the current value. This allows two versions of an object to be merged consistently while also retaining the newer version of each field.
 
 ## Usage
 Add the `crdtCollection` annotation.

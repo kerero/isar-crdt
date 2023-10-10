@@ -1,123 +1,20 @@
 import 'package:isar/isar.dart';
 import 'package:quiver/core.dart';
+import 'local_system_hlc.dart';
 
 part 'hlc.g.dart';
-
-const _logicalTimeSize = 16;
-const _maxLogicalTime = ~(-1 << _logicalTimeSize);
-const _maxDrift = 60000; // 1 minute in ms
 
 /// A Hybrid Logical Clock implementation.
 /// This class trades time precision for a guaranteed monotonically increasing
 /// clock in distributed systems.
 /// Inspiration: https://cse.buffalo.edu/tech-reports/2014-04.pdf
 
-@Collection(accessor: '_localSystemHlcStore')
-class LocalSystemHlcStore {
-  static const int collectionItemId = 1;
-  Id id = collectionItemId;
-  Hlc? storedHlc;
-  LocalSystemHlcStore(this.storedHlc);
-}
-
-abstract final class LocalSystemHlc {
-  static Hlc? _localSystemClock;
-  static Isar? _isarInstance;
-  static Hlc? get localSystemClock => _localSystemClock;
-
-  static void requireInitialization() {
-    if (_isarInstance == null) {
-      throw LocalSystemHlcUninitializedException();
-    }
-
-    if (!_isarInstance!.isOpen) {
-      throw LocalSystemHlcException("Isar instance is closed");
-    }
-  }
-
-  static Future<Hlc> incrementLocalTime() async {
-    requireInitialization();
-    // TODO: check we have write txn aquired
-    final physicalTime =
-        DateTime.now().millisecondsSinceEpoch << _logicalTimeSize;
-    var incremented = Hlc(
-        hybridTime: physicalTime > _localSystemClock!.hybridTime
-            ? physicalTime
-            : _localSystemClock!.hybridTime + 1,
-        nodeId: _localSystemClock!.nodeId);
-    await _setClockNonTxn(incremented);
-    return _localSystemClock!;
-  }
-
-  static Future<void> initialize(Isar isar, int localNodeId,
-      {Hlc? defaultHlc}) async {
-    LocalSystemHlc._isarInstance = isar;
-    final restoredHlc = (await isar._localSystemHlcStore
-            .get(LocalSystemHlcStore.collectionItemId))
-        ?.storedHlc;
-
-    // Check if the previous local system Hlc was saved
-    if (restoredHlc != null) {
-      _localSystemClock = restoredHlc;
-    } else {
-      // Initialize new clock
-      var newHlc = defaultHlc ??
-          Hlc.fromPhysicalTime(DateTime.now().millisecondsSinceEpoch,
-              nodeId: localNodeId);
-      await _setClock(newHlc);
-    }
-  }
-
-  static void initializeSync(Isar? isar, int localNodeId, {Hlc? defaultHlc}) {
-    LocalSystemHlc._isarInstance = isar;
-    final restoredHlc = (isar?._localSystemHlcStore
-            .getSync(LocalSystemHlcStore.collectionItemId))
-        ?.storedHlc;
-
-    // Check if the previous local system Hlc was saved
-    if (restoredHlc != null) {
-      _localSystemClock = restoredHlc;
-    } else {
-      // Initialize new clock
-      var newHlc = defaultHlc ??
-          Hlc.fromPhysicalTime(DateTime.now().millisecondsSinceEpoch,
-              nodeId: localNodeId);
-      _setClockSync(newHlc);
-    }
-  }
-
-  static Future<void> _setClock(Hlc newHlc) {
-    requireInitialization();
-    return _isarInstance!.writeTxn(() async {
-      await _setClockNonTxn(newHlc);
-    });
-  }
-
-  static Future<void> _setClockNonTxn(Hlc newHlc) async {
-    requireInitialization();
-    await _isarInstance!._localSystemHlcStore.put(LocalSystemHlcStore(newHlc));
-    _localSystemClock = newHlc;
-  }
-
-  static void _setClockSync(Hlc newHlc) {
-    requireInitialization();
-    return _isarInstance!.writeTxnSync(() {
-      _isarInstance!._localSystemHlcStore.putSync(LocalSystemHlcStore(newHlc));
-      _localSystemClock = newHlc;
-    });
-  }
-
-  static Future<void> overrideClock(Hlc hlc) {
-    return _setClock(hlc);
-  }
-
-  static void overrideClockSync(Hlc hlc) {
-    _setClockSync(hlc);
-  }
-}
-
 @embedded
 class Hlc implements Comparable<Hlc> {
+  static const logicalTimeSize = 16;
+  static const maxLogicalTime = ~(-1 << logicalTimeSize);
+  static const maxDrift = 60000; // 1 minute in ms
+
   final int hybridTime;
   final int nodeId;
   // TODO: just make it nullable?
@@ -126,14 +23,14 @@ class Hlc implements Comparable<Hlc> {
   Hlc({this.hybridTime = 0, this.nodeId = Hlc.nullNodeId});
 
   Hlc.fromPhysicalTime(int physicalTime, {int? nodeId, int logicalTime = 0})
-      : assert(logicalTime <= _maxLogicalTime),
-        nodeId = nodeId ?? LocalSystemHlc._localSystemClock!.nodeId,
-        hybridTime = physicalTime << _logicalTimeSize + logicalTime;
+      : assert(logicalTime <= logicalTimeSize),
+        nodeId = nodeId ?? LocalSystemHlc.localSystemClock!.nodeId,
+        hybridTime = physicalTime << logicalTimeSize + logicalTime;
   Hlc.zero({int nodeId = nullNodeId}) : this(hybridTime: 0, nodeId: nodeId);
   Hlc.now()
       : this(
-            hybridTime: LocalSystemHlc._localSystemClock!.hybridTime,
-            nodeId: LocalSystemHlc._localSystemClock!.nodeId);
+            hybridTime: LocalSystemHlc.localSystemClock!.hybridTime,
+            nodeId: LocalSystemHlc.localSystemClock!.nodeId);
 
   @override
   bool operator ==(other) => other is Hlc && compareTo(other) == 0;
@@ -163,7 +60,8 @@ class HlcDriftException implements Exception {
       : drift = millisecondsTs - millisecondsWall;
 
   @override
-  String toString() => 'Clock drift of $drift ms exceeds maximum ($_maxDrift)';
+  String toString() =>
+      'Clock drift of $drift ms exceeds maximum (${Hlc.maxDrift})';
 }
 
 class LogicalTimeOverflowException implements Exception {

@@ -12,69 +12,107 @@ const _maxDrift = 60000; // 1 minute in ms
 /// clock in distributed systems.
 /// Inspiration: https://cse.buffalo.edu/tech-reports/2014-04.pdf
 
-@Collection(accessor: '_localSystemHlc')
-class LocalSystemHlc {
+@Collection(accessor: '_localSystemHlcStore')
+class LocalSystemHlcStore {
   static const int collectionItemId = 1;
   Id id = collectionItemId;
-  Hlc? instanceHlc;
-  static Hlc? hlc;
+  Hlc? storedHlc;
+  LocalSystemHlcStore(this.storedHlc);
+}
 
-  LocalSystemHlc(this.instanceHlc);
+abstract final class LocalSystemHlc {
+  static Hlc? _localSystemClock;
+  static Isar? _isarInstance;
+  static Hlc? get localSystemClock => _localSystemClock;
 
   static void requireInitialization() {
-    if (hlc == null) {
+    if (_isarInstance == null) {
       throw LocalSystemHlcUninitializedException();
     }
+
+    if (!_isarInstance!.isOpen) {
+      throw LocalSystemHlcException("Isar instance is closed");
+    }
   }
 
-  static Hlc incrementLocalTime() {
+  static Future<Hlc> incrementLocalTime() async {
     requireInitialization();
+    // TODO: check we have write txn aquired
     final physicalTime =
         DateTime.now().millisecondsSinceEpoch << _logicalTimeSize;
-    hlc = Hlc(
-        hybridTime:
-            physicalTime > hlc!.hybridTime ? physicalTime : hlc!.hybridTime + 1,
-        nodeId: hlc!.nodeId);
-    return hlc!;
+    var incremented = Hlc(
+        hybridTime: physicalTime > _localSystemClock!.hybridTime
+            ? physicalTime
+            : _localSystemClock!.hybridTime + 1,
+        nodeId: _localSystemClock!.nodeId);
+    await _setClockNonTxn(incremented);
+    return _localSystemClock!;
   }
 
-  static Future initialize(Isar isar, Future<int> Function() getLocalNodeId,
-      {Future<int> Function()? getLocalHybridTime}) async {
-    final restoredHlc =
-        (await isar._localSystemHlc.get(collectionItemId))?.instanceHlc;
+  static Future<void> initialize(Isar isar, int localNodeId,
+      {Hlc? defaultHlc}) async {
+    LocalSystemHlc._isarInstance = isar;
+    final restoredHlc = (await isar._localSystemHlcStore
+            .get(LocalSystemHlcStore.collectionItemId))
+        ?.storedHlc;
 
     // Check if the previous local system Hlc was saved
     if (restoredHlc != null) {
-      hlc = restoredHlc;
+      _localSystemClock = restoredHlc;
     } else {
       // Initialize new clock
-      hlc = Hlc(
-          hybridTime: (await getLocalHybridTime?.call()) ??
-              Hlc.fromPhysicalTime(DateTime.now().millisecondsSinceEpoch)
-                  .hybridTime,
-          nodeId: await getLocalNodeId());
-      await isar.writeTxn(() => isar._localSystemHlc.put(LocalSystemHlc(hlc)));
+      var newHlc = defaultHlc ??
+          Hlc.fromPhysicalTime(DateTime.now().millisecondsSinceEpoch,
+              nodeId: localNodeId);
+      await _setClock(newHlc);
     }
   }
 
-  static void initializeSync(Isar isar, int Function() getLocalNodeId,
-      {int Function()? getLocalHybridTime}) {
-    final restoredHlc =
-        (isar._localSystemHlc.getSync(collectionItemId))?.instanceHlc;
+  static void initializeSync(Isar? isar, int localNodeId, {Hlc? defaultHlc}) {
+    LocalSystemHlc._isarInstance = isar;
+    final restoredHlc = (isar?._localSystemHlcStore
+            .getSync(LocalSystemHlcStore.collectionItemId))
+        ?.storedHlc;
 
     // Check if the previous local system Hlc was saved
     if (restoredHlc != null) {
-      hlc = restoredHlc;
+      _localSystemClock = restoredHlc;
     } else {
       // Initialize new clock
-      hlc = Hlc(
-          hybridTime: (getLocalHybridTime?.call()) ??
-              Hlc.fromPhysicalTime(DateTime.now().millisecondsSinceEpoch)
-                  .hybridTime,
-          nodeId: getLocalNodeId());
-      isar.writeTxnSync(
-          () => isar._localSystemHlc.putSync(LocalSystemHlc(hlc)));
+      var newHlc = defaultHlc ??
+          Hlc.fromPhysicalTime(DateTime.now().millisecondsSinceEpoch,
+              nodeId: localNodeId);
+      _setClockSync(newHlc);
     }
+  }
+
+  static Future<void> _setClock(Hlc newHlc) {
+    requireInitialization();
+    return _isarInstance!.writeTxn(() async {
+      await _setClockNonTxn(newHlc);
+    });
+  }
+
+  static Future<void> _setClockNonTxn(Hlc newHlc) async {
+    requireInitialization();
+    await _isarInstance!._localSystemHlcStore.put(LocalSystemHlcStore(newHlc));
+    _localSystemClock = newHlc;
+  }
+
+  static void _setClockSync(Hlc newHlc) {
+    requireInitialization();
+    return _isarInstance!.writeTxnSync(() {
+      _isarInstance!._localSystemHlcStore.putSync(LocalSystemHlcStore(newHlc));
+      _localSystemClock = newHlc;
+    });
+  }
+
+  static Future<void> overrideClock(Hlc hlc) {
+    return _setClock(hlc);
+  }
+
+  static void overrideClockSync(Hlc hlc) {
+    _setClockSync(hlc);
   }
 }
 
@@ -82,19 +120,20 @@ class LocalSystemHlc {
 class Hlc implements Comparable<Hlc> {
   final int hybridTime;
   final int nodeId;
+  // TODO: just make it nullable?
   static const int nullNodeId = -1;
 
   Hlc({this.hybridTime = 0, this.nodeId = Hlc.nullNodeId});
 
   Hlc.fromPhysicalTime(int physicalTime, {int? nodeId, int logicalTime = 0})
       : assert(logicalTime <= _maxLogicalTime),
-        nodeId = nodeId ?? LocalSystemHlc.hlc!.nodeId,
+        nodeId = nodeId ?? LocalSystemHlc._localSystemClock!.nodeId,
         hybridTime = physicalTime << _logicalTimeSize + logicalTime;
   Hlc.zero({int nodeId = nullNodeId}) : this(hybridTime: 0, nodeId: nodeId);
   Hlc.now()
       : this(
-            hybridTime: LocalSystemHlc.hlc!.hybridTime,
-            nodeId: LocalSystemHlc.hlc!.nodeId);
+            hybridTime: LocalSystemHlc._localSystemClock!.hybridTime,
+            nodeId: LocalSystemHlc._localSystemClock!.nodeId);
 
   @override
   bool operator ==(other) => other is Hlc && compareTo(other) == 0;
@@ -151,4 +190,12 @@ class LocalSystemHlcUninitializedException implements Exception {
   @override
   String toString() =>
       'LocalSystemHlc is uninitialized. Please use initialize() or initializeSync()';
+}
+
+class LocalSystemHlcException implements Exception {
+  String msg;
+  LocalSystemHlcException(this.msg);
+
+  @override
+  String toString() => msg;
 }

@@ -9,43 +9,44 @@ part of 'hlc.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetLocalSystemHlcCollection on Isar {
-  IsarCollection<LocalSystemHlc> get _localSystemHlc => this.collection();
+extension GetLocalSystemHlcStoreCollection on Isar {
+  IsarCollection<LocalSystemHlcStore> get _localSystemHlcStore =>
+      this.collection();
 }
 
-const LocalSystemHlcSchema = CollectionSchema(
-  name: r'LocalSystemHlc',
-  id: 5949527600501192947,
+const LocalSystemHlcStoreSchema = CollectionSchema(
+  name: r'LocalSystemHlcStore',
+  id: -264398294228782069,
   properties: {
-    r'instanceHlc': PropertySchema(
+    r'storedHlc': PropertySchema(
       id: 0,
-      name: r'instanceHlc',
+      name: r'storedHlc',
       type: IsarType.object,
       target: r'Hlc',
     )
   },
-  estimateSize: _localSystemHlcEstimateSize,
-  serialize: _localSystemHlcSerialize,
-  deserialize: _localSystemHlcDeserialize,
-  deserializeProp: _localSystemHlcDeserializeProp,
+  estimateSize: _localSystemHlcStoreEstimateSize,
+  serialize: _localSystemHlcStoreSerialize,
+  deserialize: _localSystemHlcStoreDeserialize,
+  deserializeProp: _localSystemHlcStoreDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
   embeddedSchemas: {r'Hlc': HlcSchema},
-  getId: _localSystemHlcGetId,
-  getLinks: _localSystemHlcGetLinks,
-  attach: _localSystemHlcAttach,
+  getId: _localSystemHlcStoreGetId,
+  getLinks: _localSystemHlcStoreGetLinks,
+  attach: _localSystemHlcStoreAttach,
   version: '3.1.0+1',
 );
 
-int _localSystemHlcEstimateSize(
-  LocalSystemHlc object,
+int _localSystemHlcStoreEstimateSize(
+  LocalSystemHlcStore object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
   {
-    final value = object.instanceHlc;
+    final value = object.storedHlc;
     if (value != null) {
       bytesCount +=
           3 + HlcSchema.estimateSize(value, allOffsets[Hlc]!, allOffsets);
@@ -54,8 +55,8 @@ int _localSystemHlcEstimateSize(
   return bytesCount;
 }
 
-void _localSystemHlcSerialize(
-  LocalSystemHlc object,
+void _localSystemHlcStoreSerialize(
+  LocalSystemHlcStore object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -64,17 +65,17 @@ void _localSystemHlcSerialize(
     offsets[0],
     allOffsets,
     HlcSchema.serialize,
-    object.instanceHlc,
+    object.storedHlc,
   );
 }
 
-LocalSystemHlc _localSystemHlcDeserialize(
+LocalSystemHlcStore _localSystemHlcStoreDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = LocalSystemHlc(
+  final object = LocalSystemHlcStore(
     reader.readObjectOrNull<Hlc>(
       offsets[0],
       HlcSchema.deserialize,
@@ -85,7 +86,7 @@ LocalSystemHlc _localSystemHlcDeserialize(
   return object;
 }
 
-P _localSystemHlcDeserializeProp<P>(
+P _localSystemHlcStoreDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -103,32 +104,33 @@ P _localSystemHlcDeserializeProp<P>(
   }
 }
 
-Id _localSystemHlcGetId(LocalSystemHlc object) {
+Id _localSystemHlcStoreGetId(LocalSystemHlcStore object) {
   return object.id;
 }
 
-List<IsarLinkBase<dynamic>> _localSystemHlcGetLinks(LocalSystemHlc object) {
+List<IsarLinkBase<dynamic>> _localSystemHlcStoreGetLinks(
+    LocalSystemHlcStore object) {
   return [];
 }
 
-void _localSystemHlcAttach(
-    IsarCollection<dynamic> col, Id id, LocalSystemHlc object) {
+void _localSystemHlcStoreAttach(
+    IsarCollection<dynamic> col, Id id, LocalSystemHlcStore object) {
   object.id = id;
 }
 
-extension LocalSystemHlcQueryWhereSort
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QWhere> {
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterWhere> anyId() {
+extension LocalSystemHlcStoreQueryWhereSort
+    on QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QWhere> {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension LocalSystemHlcQueryWhere
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QWhereClause> {
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterWhereClause> idEqualTo(
-      Id id) {
+extension LocalSystemHlcStoreQueryWhere
+    on QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QWhereClause> {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterWhereClause>
+      idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -137,8 +139,8 @@ extension LocalSystemHlcQueryWhere
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterWhereClause> idNotEqualTo(
-      Id id) {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterWhereClause>
+      idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -160,9 +162,8 @@ extension LocalSystemHlcQueryWhere
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterWhereClause> idGreaterThan(
-      Id id,
-      {bool include = false}) {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterWhereClause>
+      idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -170,9 +171,8 @@ extension LocalSystemHlcQueryWhere
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterWhereClause> idLessThan(
-      Id id,
-      {bool include = false}) {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterWhereClause>
+      idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -180,7 +180,8 @@ extension LocalSystemHlcQueryWhere
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterWhereClause> idBetween(
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterWhereClause>
+      idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -197,10 +198,10 @@ extension LocalSystemHlcQueryWhere
   }
 }
 
-extension LocalSystemHlcQueryFilter
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QFilterCondition> {
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterFilterCondition> idEqualTo(
-      Id value) {
+extension LocalSystemHlcStoreQueryFilter on QueryBuilder<LocalSystemHlcStore,
+    LocalSystemHlcStore, QFilterCondition> {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterFilterCondition>
+      idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -209,7 +210,7 @@ extension LocalSystemHlcQueryFilter
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterFilterCondition>
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterFilterCondition>
       idGreaterThan(
     Id value, {
     bool include = false,
@@ -223,7 +224,7 @@ extension LocalSystemHlcQueryFilter
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterFilterCondition>
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterFilterCondition>
       idLessThan(
     Id value, {
     bool include = false,
@@ -237,7 +238,8 @@ extension LocalSystemHlcQueryFilter
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterFilterCondition> idBetween(
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterFilterCondition>
+      idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
@@ -254,70 +256,73 @@ extension LocalSystemHlcQueryFilter
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterFilterCondition>
-      instanceHlcIsNull() {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterFilterCondition>
+      storedHlcIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'instanceHlc',
+        property: r'storedHlc',
       ));
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterFilterCondition>
-      instanceHlcIsNotNull() {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterFilterCondition>
+      storedHlcIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'instanceHlc',
+        property: r'storedHlc',
       ));
     });
   }
 }
 
-extension LocalSystemHlcQueryObject
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QFilterCondition> {
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterFilterCondition>
-      instanceHlc(FilterQuery<Hlc> q) {
+extension LocalSystemHlcStoreQueryObject on QueryBuilder<LocalSystemHlcStore,
+    LocalSystemHlcStore, QFilterCondition> {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterFilterCondition>
+      storedHlc(FilterQuery<Hlc> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'instanceHlc');
+      return query.object(q, r'storedHlc');
     });
   }
 }
 
-extension LocalSystemHlcQueryLinks
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QFilterCondition> {}
+extension LocalSystemHlcStoreQueryLinks on QueryBuilder<LocalSystemHlcStore,
+    LocalSystemHlcStore, QFilterCondition> {}
 
-extension LocalSystemHlcQuerySortBy
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QSortBy> {}
+extension LocalSystemHlcStoreQuerySortBy
+    on QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QSortBy> {}
 
-extension LocalSystemHlcQuerySortThenBy
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QSortThenBy> {
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterSortBy> thenById() {
+extension LocalSystemHlcStoreQuerySortThenBy
+    on QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QSortThenBy> {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterSortBy>
+      thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<LocalSystemHlc, LocalSystemHlc, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QAfterSortBy>
+      thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 }
 
-extension LocalSystemHlcQueryWhereDistinct
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QDistinct> {}
+extension LocalSystemHlcStoreQueryWhereDistinct
+    on QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QDistinct> {}
 
-extension LocalSystemHlcQueryProperty
-    on QueryBuilder<LocalSystemHlc, LocalSystemHlc, QQueryProperty> {
-  QueryBuilder<LocalSystemHlc, int, QQueryOperations> idProperty() {
+extension LocalSystemHlcStoreQueryProperty
+    on QueryBuilder<LocalSystemHlcStore, LocalSystemHlcStore, QQueryProperty> {
+  QueryBuilder<LocalSystemHlcStore, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<LocalSystemHlc, Hlc?, QQueryOperations> instanceHlcProperty() {
+  QueryBuilder<LocalSystemHlcStore, Hlc?, QQueryOperations>
+      storedHlcProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'instanceHlc');
+      return query.addPropertyName(r'storedHlc');
     });
   }
 }

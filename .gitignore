@@ -1,1 +1,3 @@
 packages/isar_crdt_test/
+*.isar-lck
+*.isar

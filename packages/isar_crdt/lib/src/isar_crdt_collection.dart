@@ -14,7 +14,7 @@ class IsarCrdtCollection<OBJ extends IsarCrdtBase>
     // Ids need to be unique across nodes
     if (id == Isar.autoIncrement) {
       // TODO: after Isar 4 release switch to IsarCollection.autoIncrement() + localNodeId
-      id = LocalSystemHlc.hlc.hashCode;
+      id = LocalSystemHlc.localSystemClock.hashCode;
       schema.attach(this, id, object);
     } else {
       oldObj = await get(id);

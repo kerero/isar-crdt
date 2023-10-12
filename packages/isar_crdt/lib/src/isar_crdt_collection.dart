@@ -1,7 +1,7 @@
-import '../isar_crdt.dart';
 import 'package:isar/isar.dart';
+import 'package:isar_crdt/isar_crdt.dart';
 
-class IsarCrdtCollection<OBJ extends IsarCrdtBase>
+class IsarCrdtCollection<OBJ extends IsarCrdtBase<OBJ>>
     extends IsarCollectionShell<OBJ> {
   IsarCrdtCollection(super.originalCollection);
 

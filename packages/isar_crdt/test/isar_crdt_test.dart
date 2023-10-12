@@ -1,13 +1,15 @@
 import 'package:isar_crdt/isar_crdt.dart';
 import 'package:test/test.dart';
 import 'package:isar/isar.dart';
+import 'dart:io';
 
 void main() {
   late Isar isar;
 
   setUp(() async {
     await Isar.initializeIsarCore(download: true);
-    isar = await Isar.open([LocalSystemHlcStoreSchema], directory: '');
+    isar = await Isar.open([LocalSystemHlcStoreSchema],
+        directory: Directory.systemTemp.path);
     await isar.writeTxn(() async {});
     LocalSystemHlc.initializeSync(isar, 1);
   });

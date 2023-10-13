@@ -1,15 +1,17 @@
 import 'package:isar/isar.dart';
 import 'package:isar_crdt/isar_crdt.dart';
-import 'package:isar_crdt_test/test_embedded_class.dart';
 import 'package:isar_crdt_test/some_class.dart';
+import 'package:isar_crdt_test/test_embedded_class.dart';
 
 void main(List<String> arguments) async {
   await Isar.initializeIsarCore(download: true);
-  final isar = await Isar.open([TestClassSchema, LocalSystemHlcStoreSchema],
-      directory: '.');
+  final isar = await Isar.open(
+    [SomeClassSchema, LocalSystemHlcStoreSchema],
+    directory: '.',
+  );
   LocalSystemHlc.initializeSync(isar, 1);
 
-  var obj = isar.testClass.getSync(1)?.withGrowableLists();
+  var obj = isar.someClass.getSync(1)?.withGrowableLists();
   if (obj == null) {
     obj = SomeClass(1);
     obj.myFloatList.addAll([1, 3, 4, 5]);
@@ -21,7 +23,7 @@ void main(List<String> arguments) async {
   }
   obj.myEmbeddedList.add(AnotherTestEmbeddedClass());
   await isar.writeTxn(() {
-    return isar.testClass.put(obj!);
+    return isar.someClass.put(obj!);
   });
-  await Future.delayed(Duration(days: 1));
+  await Future.delayed(const Duration(days: 1));
 }

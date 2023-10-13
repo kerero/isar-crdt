@@ -26,13 +26,13 @@ jobs:
       # Install dependencies
       - name: isar-crdt install dependencies
         run: dart pub get
-        working-directory: packages/isar-crdt
+        working-directory: packages/isar_crdt
       - name: isar-crdt-generator install dependencies
         run: dart pub get
-        working-directory: packages/isar-crdt-generator
+        working-directory: packages/isar_crdt_generator
       - name: isar-crdt-test install dependencies
         run: dart pub get
-        working-directory: packages/isar-crdt-test
+        working-directory: packages/isar_crdt_test
 
       # Formatting
       - name: Check formatting
@@ -44,10 +44,10 @@ jobs:
 
       # Testing
       - name: Test isar-crdt package
-        working-directory: packages/isar-crdt
+        working-directory: packages/isar_crdt
         run: dart test
       - name: E2E tests
-        working-directory: packages/isar-crdt-test
+        working-directory: packages/isar_crdt_test
         run: |
           dart run build_runner build
           dart test

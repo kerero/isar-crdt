@@ -1,7 +1,6 @@
 import 'package:isar_crdt/src/hlc.dart';
 import 'package:isar_crdt/src/isar_crdt_base_class.dart';
 
-
 Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
   return oldHlc == null || oldVal != newVal ? Hlc.now() : oldHlc;
 }

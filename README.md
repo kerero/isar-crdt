@@ -12,9 +12,13 @@ This project aims to extend the functionality of the [Isar database](https://isa
 
 The remote synchronization is achieved by generating HLC ([Hybrid Logical Clock](https://martinfowler.com/articles/patterns-of-distributed-systems/hybrid-clock.html)) per field that act as a version number for the current value. This allows two versions of an object to be merged consistently while also retaining the newer version of each field.
 
+## Synchronization types support
+- [x] collection classes
+- [x] embedded classes
+- [x] primitive types
+- [ ] Lists
+
 ## Usage
-Add the `crdtCollection` annotation.
-Use Isar interface normally.
 ```dart
 import 'package:isar_crdt/isar_crdt.dart'; //  <-- 
 import 'package:isar/isar.dart';

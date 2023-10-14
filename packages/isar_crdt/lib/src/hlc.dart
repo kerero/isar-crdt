@@ -14,13 +14,13 @@ class Hlc implements Comparable<Hlc> {
 
   Hlc.fromPhysicalTime(int physicalTime, {int? nodeId, int logicalTime = 0})
       : assert(logicalTime <= logicalTimeSize),
-        nodeId = nodeId ?? LocalSystemHlc.localSystemClock!.nodeId,
+        nodeId = nodeId ?? LocalSystemHlc.localSystemClock.nodeId,
         hybridTime = physicalTime << logicalTimeSize + logicalTime;
   Hlc.zero({int nodeId = nullNodeId}) : this(hybridTime: 0, nodeId: nodeId);
   Hlc.now()
       : this(
-          hybridTime: LocalSystemHlc.localSystemClock!.hybridTime,
-          nodeId: LocalSystemHlc.localSystemClock!.nodeId,
+          hybridTime: LocalSystemHlc.localSystemClock.hybridTime,
+          nodeId: LocalSystemHlc.localSystemClock.nodeId,
         );
 
   static const logicalTimeSize = 16;

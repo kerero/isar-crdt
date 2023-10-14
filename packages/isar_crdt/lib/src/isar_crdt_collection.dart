@@ -7,8 +7,21 @@ class IsarCrdtCollection<OBJ extends IsarCrdtBase<OBJ>>
 
   @override
   Future<Id> put(OBJ object) async {
+    await _updateHlcs(object);
+    return super.put(object);
+  }
+
+  @override
+  Future<List<Id>> putAll(List<OBJ> objects) async {
+    for (final obj in objects) {
+      await _updateHlcs(obj);
+    }
+    return super.putAll(objects);
+  }
+
+  Future<void> _updateHlcs(OBJ object) async {
     var id = schema.getId(object);
-    LocalSystemHlc.incrementLocalTime();
+    await LocalSystemHlc.incrementLocalTime();
     OBJ? oldObj;
 
     // Ids need to be unique across nodes
@@ -21,6 +34,5 @@ class IsarCrdtCollection<OBJ extends IsarCrdtBase<OBJ>>
     }
 
     object.updateHLCs(oldObj);
-    return super.put(object);
   }
 }

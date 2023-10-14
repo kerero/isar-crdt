@@ -14,7 +14,7 @@ class LocalSystemHlcStore {
 abstract final class LocalSystemHlc {
   static Hlc? _localSystemClock;
   static Isar? _isarInstance;
-  static Hlc? get localSystemClock => _localSystemClock;
+  static Hlc get localSystemClock => _localSystemClock!;
 
   static void requireInitialization() {
     if (_isarInstance == null) {

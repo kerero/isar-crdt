@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "crdt",
+        "hlcs",
         "kerero"
     ],
     "dart.debugExternalPackageLibraries": true,

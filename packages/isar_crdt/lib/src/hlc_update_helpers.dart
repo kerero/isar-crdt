@@ -1,13 +1,21 @@
 import 'package:isar_crdt/src/hlc.dart';
 import 'package:isar_crdt/src/isar_crdt_base_class.dart';
 
+/// Returns an updated [Hlc], if the [newVal] changed from [oldVal],
+/// else return the [oldHlc]
 Hlc updatePrimitivesHlc<T>(T? oldVal, T newVal, Hlc? oldHlc) {
   return oldHlc == null || oldVal != newVal ? Hlc.now() : oldHlc;
 }
 
 // TODO: write tests for this
+/// Returns an updated [Hlc]s
+/// based on whether [newList] changed from [oldList].
 (Hlc, List<Hlc>) updateListHlc<T>(
-    List<T>? oldList, List<T> newList, Hlc? oldHlc, List<Hlc>? oldListHlc) {
+  List<T>? oldList,
+  List<T> newList,
+  Hlc? oldHlc,
+  List<Hlc>? oldListHlc,
+) {
   var updated = false;
   oldHlc ??= Hlc.now();
   oldList ??= [];

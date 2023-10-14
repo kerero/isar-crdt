@@ -1,15 +1,18 @@
+import 'dart:io';
+
+import 'package:isar/isar.dart';
 import 'package:isar_crdt/isar_crdt.dart';
 import 'package:test/test.dart';
-import 'package:isar/isar.dart';
-import 'dart:io';
 
 void main() {
   late Isar isar;
 
   setUp(() async {
     await Isar.initializeIsarCore(download: true);
-    isar = await Isar.open([LocalSystemHlcStoreSchema],
-        directory: Directory.systemTemp.path);
+    isar = await Isar.open(
+      [LocalSystemHlcStoreSchema],
+      directory: Directory.systemTemp.path,
+    );
     await isar.writeTxn(() async {});
     LocalSystemHlc.initializeSync(isar, 1);
   });
@@ -22,11 +25,11 @@ void main() {
     const oldVal = 1;
     const newVal = 2;
     await isar.writeTxn(() async {
-      Hlc oldHlc = Hlc.now();
+      final oldHlc = Hlc.now();
       await LocalSystemHlc.incrementLocalTime();
-      Hlc newHlc = Hlc.now();
+      final newHlc = Hlc.now();
       expect(newHlc, greaterThan(oldHlc));
-      var resHlc = updatePrimitivesHlc(oldVal, newVal, oldHlc);
+      final resHlc = updatePrimitivesHlc(oldVal, newVal, oldHlc);
       expect(resHlc, equals(newHlc));
     });
   });
@@ -37,8 +40,8 @@ void main() {
     Hlc? oldHlc;
     await isar.writeTxn(() async {
       await LocalSystemHlc.incrementLocalTime();
-      Hlc newHlc = Hlc.now();
-      var resHlc = updatePrimitivesHlc(oldVal, newVal, oldHlc);
+      final newHlc = Hlc.now();
+      final resHlc = updatePrimitivesHlc(oldVal, newVal, oldHlc);
       expect(resHlc, equals(newHlc));
     });
   });
@@ -47,10 +50,10 @@ void main() {
     const oldVal = 1;
     const newVal = oldVal;
     await isar.writeTxn(() async {
-      Hlc oldHlc = Hlc.now();
+      final oldHlc = Hlc.now();
       await LocalSystemHlc.incrementLocalTime();
-      var newHlc = Hlc.now();
-      var resHlc = updatePrimitivesHlc(oldVal, newVal, oldHlc);
+      final newHlc = Hlc.now();
+      final resHlc = updatePrimitivesHlc(oldVal, newVal, oldHlc);
       expect(resHlc, equals(oldHlc));
       expect(oldHlc, isNot(equals(newHlc)));
       expect(oldHlc.hybridTime, lessThan(newHlc.hybridTime));

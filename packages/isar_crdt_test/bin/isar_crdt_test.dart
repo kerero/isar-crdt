@@ -25,5 +25,5 @@ void main(List<String> arguments) async {
   await isar.writeTxn(() {
     return isar.someClass.put(obj!);
   });
-  await Future.delayed(const Duration(days: 1));
+  await Future<void>.delayed(const Duration(days: 1));
 }

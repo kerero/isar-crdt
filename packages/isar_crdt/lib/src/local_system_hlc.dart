@@ -70,7 +70,7 @@ abstract final class LocalSystemHlc {
       _localSystemClock = restoredHlc;
     } else {
       // Initialize new clock
-      var newHlc = defaultHlc ??
+      final newHlc = defaultHlc ??
           Hlc.fromPhysicalTime(DateTime.now().millisecondsSinceEpoch,
               nodeId: localNodeId);
       _setClockSync(newHlc);

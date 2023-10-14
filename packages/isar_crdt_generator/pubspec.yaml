@@ -7,11 +7,11 @@ environment:
   sdk: ^3.0.6
 
 dependencies:
-  build: ^2.4.1
-  source_gen: ^1.4.0
-  isar_crdt:
   analyzer:
+  build: ^2.4.1
+  isar_crdt:
   isar_generator: ^3.1.0+1
+  source_gen: ^1.4.0
 
 # For local development
 dependency_overrides:

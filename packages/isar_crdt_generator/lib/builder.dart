@@ -1,11 +1,10 @@
 import 'package:build/build.dart';
+import 'package:isar_crdt_generator/src/crdt_collection_generator.dart';
+import 'package:isar_crdt_generator/src/crdt_embedded_generator.dart';
+import 'package:isar_crdt_generator/src/modified_isar_collection_generator.dart';
 // ignore: implementation_imports
 import 'package:isar_generator/src/collection_generator.dart';
 import 'package:source_gen/source_gen.dart';
-
-import 'src/crdt_collection_generator.dart';
-import 'src/crdt_embedded_generator.dart';
-import 'src/modified_isar_collection_generator.dart';
 
 Builder generateIsarCrdt(BuilderOptions options) => PartBuilder(
       [

@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
+import 'package:isar_crdt/src/local_system_hlc.dart';
 import 'package:quiver/core.dart';
-import 'local_system_hlc.dart';
 
 part 'hlc.g.dart';
 
@@ -8,18 +8,8 @@ part 'hlc.g.dart';
 /// This class trades time precision for a guaranteed monotonically increasing
 /// clock in distributed systems.
 /// Inspiration: https://cse.buffalo.edu/tech-reports/2014-04.pdf
-
 @embedded
 class Hlc implements Comparable<Hlc> {
-  static const logicalTimeSize = 16;
-  static const maxLogicalTime = ~(-1 << logicalTimeSize);
-  static const maxDrift = 60000; // 1 minute in ms
-
-  final int hybridTime;
-  final int nodeId;
-  // TODO: just make it nullable?
-  static const int nullNodeId = -1;
-
   Hlc({this.hybridTime = 0, this.nodeId = Hlc.nullNodeId});
 
   Hlc.fromPhysicalTime(int physicalTime, {int? nodeId, int logicalTime = 0})
@@ -29,8 +19,18 @@ class Hlc implements Comparable<Hlc> {
   Hlc.zero({int nodeId = nullNodeId}) : this(hybridTime: 0, nodeId: nodeId);
   Hlc.now()
       : this(
-            hybridTime: LocalSystemHlc.localSystemClock!.hybridTime,
-            nodeId: LocalSystemHlc.localSystemClock!.nodeId);
+          hybridTime: LocalSystemHlc.localSystemClock!.hybridTime,
+          nodeId: LocalSystemHlc.localSystemClock!.nodeId,
+        );
+
+  static const logicalTimeSize = 16;
+  static const maxLogicalTime = ~(-1 << logicalTimeSize);
+  static const maxDrift = 60000; // 1 minute in ms
+
+  final int hybridTime;
+  final int nodeId;
+  // TODO: just make it nullable?
+  static const int nullNodeId = -1;
 
   @override
   bool operator ==(other) => other is Hlc && compareTo(other) == 0;
@@ -54,10 +54,9 @@ class Hlc implements Comparable<Hlc> {
 }
 
 class HlcDriftException implements Exception {
-  final int drift;
-
   HlcDriftException(int millisecondsTs, int millisecondsWall)
       : drift = millisecondsTs - millisecondsWall;
+  final int drift;
 
   @override
   String toString() =>
@@ -65,34 +64,29 @@ class HlcDriftException implements Exception {
 }
 
 class LogicalTimeOverflowException implements Exception {
-  final int counter;
-
   LogicalTimeOverflowException(this.counter);
+  final int counter;
 
   @override
   String toString() => 'Timestamp counter overflow: $counter';
 }
 
 class DuplicateNodeIdException implements Exception {
-  final String nodeId;
-
   DuplicateNodeIdException(this.nodeId);
+  final String nodeId;
 
   @override
   String toString() => 'Duplicate node: $nodeId';
 }
 
-class LocalSystemHlcUninitializedException implements Exception {
-  LocalSystemHlcUninitializedException();
-
-  @override
-  String toString() =>
-      'LocalSystemHlc is uninitialized. Please use initialize() or initializeSync()';
+class LocalSystemHlcUninitializedException extends LocalSystemHlcException {
+  LocalSystemHlcUninitializedException()
+      : super('LocalSystemHlc is uninitialized. Please use [initialize()].');
 }
 
 class LocalSystemHlcException implements Exception {
-  String msg;
   LocalSystemHlcException(this.msg);
+  final String msg;
 
   @override
   String toString() => msg;

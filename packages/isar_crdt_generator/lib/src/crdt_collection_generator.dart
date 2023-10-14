@@ -20,11 +20,11 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     classCode = classCode.substring(0, classCode.length - 1);
 
     final className = element.displayName;
-    // TODO: think about removing class and embedded Hlcs since they seem redundant
+    // TODO(kerero): think about removing class and embedded HLCs since they seem redundant
     return '''
       // ignore_for_file: non_constant_identifier_names, invalid_use_of_protected_member, , duplicate_ignore
       abstract class ${_getGeneratedClassName(element.displayName)} extends IsarCrdtBase<$className> {
-        ${generateHlcFields(element)}
+        ${_generateHlcFields(element)}
 
         @protected
         @override
@@ -57,9 +57,9 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
     return code;
   }
 
-  String generateHlcFields(ClassElement element) {
+  String _generateHlcFields(ClassElement element) {
     final s = StringBuffer();
-    final hlcFields = [];
+    final hlcFields = <String>[];
 
     s
       ..writeln('@protected')
@@ -165,9 +165,9 @@ class CrdtCollectionGenerator extends GeneratorForAnnotation<CrdtCollection> {
         );
     }
 
-    //TODO: generate for lists
+    // TODO(kerero): generate for lists
 
-    return s.toString(); // TODO:
+    return s.toString(); // TODO(kerero):
   }
 
   String _getHlcFieldName(String varName) => '${varName}_fieldHlc';

@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
-        "crdt"
+        "crdt",
+        "kerero"
     ],
     "dart.debugExternalPackageLibraries": true,
     "dart.debugSdkLibraries": true,

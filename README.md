@@ -5,6 +5,8 @@
   <h1 align="center">Isar CRDT</h1>
 </p>
 
+[![ci](https://github.com/kerero/isar-crdt/actions/workflows/ci.yaml/badge.svg)](https://github.com/kerero/isar-crdt/actions/workflows/ci.yaml)
+
 # ⚠️ WIP ⚠️
 This project aims to extend the functionality of the [Isar database](https://isar.dev/) to allow remote synchronization (isar/isar#2).
 

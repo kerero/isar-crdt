@@ -51,6 +51,14 @@ class Hlc implements Comparable<Hlc> {
 
   @override
   int get hashCode => hash2(hybridTime, nodeId);
+
+  @override
+  String toString() {
+    final physicalTime =
+        DateTime.fromMillisecondsSinceEpoch(hybridTime >> logicalTimeSize);
+    final logicalTime = hybridTime & ~(-1 << logicalTimeSize);
+    return 'ptime:$physicalTime,' 'ltime:$logicalTime,' 'node:$nodeId';
+  }
 }
 
 class HlcDriftException implements Exception {
